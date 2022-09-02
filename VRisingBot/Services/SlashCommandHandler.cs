@@ -4,6 +4,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics;
 using System.Reflection;
 
 namespace VRisingBot.Services
@@ -57,12 +58,10 @@ namespace VRisingBot.Services
             Console.WriteLine($"Connected as -> [{client.CurrentUser}] :)");
         }
 
-        static bool IsDebug()
-        {
-            #if DEBUG
-                        return true;
-            #endif
-        }
+        static bool IsDebug() =>
+            Debugger.IsAttached
+            ? true
+            : false;
 
         private async Task CommandHandler(SocketSlashCommand command)
         {

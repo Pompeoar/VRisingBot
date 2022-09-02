@@ -5,10 +5,10 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["VRisingBot.csproj", "VRisingBot/"]
+COPY ["VRisingBot/VRisingBot.csproj", "VRisingBot/"]
 RUN dotnet restore "VRisingBot/VRisingBot.csproj"
-WORKDIR "/src/VRisingBot"
 COPY . .
+WORKDIR "/src/VRisingBot"
 RUN dotnet build "VRisingBot.csproj" -c Release -o /app/build
 
 FROM build AS publish
