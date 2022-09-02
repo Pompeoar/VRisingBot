@@ -8,19 +8,13 @@ using VRisingBot.Services;
 
 namespace VRisingBot.Modules
 {
-    internal class ContainerSlashCommandModule
-    {
-    }
-    public class ExampleCommands : InteractionModuleBase<SocketInteractionContext>
-    {
-        // dependencies can be accessed through Property injection, public properties with public setters will be set by the service provider
-        public InteractionService Commands { get; set; }
-        private CommandHandler _handler;
-
-        // constructor injection is also a valid way to access the dependecies
-        public ExampleCommands(CommandHandler handler)
+    public class ContainerSlashCommandModule : InteractionModuleBase<SocketInteractionContext>
+    {        
+        private CommandHandler handler;
+        
+        public ContainerSlashCommandModule(CommandHandler handler)
         {
-            _handler = handler;
+            this.handler = handler;
         }
 
         // our first /command!
