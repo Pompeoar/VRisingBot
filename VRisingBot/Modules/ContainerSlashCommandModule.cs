@@ -1,6 +1,4 @@
 ﻿using Discord.Interactions;
-using System.Threading.Tasks;
-using System.Threading;
 using VRisingBot.Services;
 
 namespace VRisingBot.Modules
@@ -19,8 +17,8 @@ namespace VRisingBot.Modules
         }
 
         [SlashCommand("8ball", "find your answer!")]
-        public async Task EightBall(string question) => 
-            await RespondAsync($"{replies[random.Next(replies.Count - 1)]}");
+        public async Task EightBall(string question) =>
+             await RespondAsync($"You asked: [**{question}**].\n Let's check the 8-ball .... [**{replies[random.Next(replies.Count - 1)]}**]");
 
         private static List<string> CreatePossibilities()
         {
