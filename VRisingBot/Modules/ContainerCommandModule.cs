@@ -65,7 +65,7 @@ namespace VRisingBot.Modules
         public async Task StateAsync()
         {
             await Context.Channel.SendMessageAsync("Getting current server status ...");
-            var result = await aciService.ExecuteCommand(ContainerCommand.State);
+            var result = await aciService.ExecuteCommand(ContainerCommand.GetCurrentState);
             await Context.Channel.SendMessageAsync(result);
         }
     }

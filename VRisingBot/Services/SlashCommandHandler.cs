@@ -4,6 +4,7 @@ using Discord.Interactions;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Reflection;
 
 namespace VRisingBot.Services
@@ -13,15 +14,19 @@ namespace VRisingBot.Services
         private readonly DiscordSocketClient client;
         private readonly IServiceProvider services;
         private readonly InteractionService interactionCommands;
+        private readonly AzureContainerInstanceService aciService;
         private readonly ulong testGuildId;
+        private const string VRISING_OPTION = "v-rising-server-options";
 
         public SlashCommandHandler(
             DiscordSocketClient client,
             IServiceProvider services,
-            InteractionService interactionCommands)
+            InteractionService interactionCommands,
+            AzureContainerInstanceService aciService)
         {
             this.services = services;
             this.interactionCommands = interactionCommands;
+            this.aciService = aciService;
             this.client = client;
             ulong.TryParse(this.services.GetRequiredService<IConfiguration>()["TestGuildId"], out testGuildId);
         }
@@ -34,19 +39,16 @@ namespace VRisingBot.Services
 
             // process the InteractionCreated payloads to execute Interactions commands
             client.InteractionCreated += HandleInteraction;
-
-            // process the command execution results 
-            interactionCommands.SlashCommandExecuted += SlashCommandExecuted;
-            interactionCommands.ContextCommandExecuted += ContextCommandExecuted;
-            interactionCommands.ComponentCommandExecuted += ComponentCommandExecuted;
+            client.SlashCommandExecuted += CommandHandler;
         }
 
         private async Task ReadyAsync()
         {
+            var guildCommand = new SlashCommandBuilder().WithGameServerOptions(VRISING_OPTION);
+
             if (IsDebug())
             {
-                Console.WriteLine($"In debug mode, adding commands to {testGuildId}...");
-                await interactionCommands.RegisterCommandsToGuildAsync(testGuildId);
+                await client.Rest.CreateGuildCommand(guildCommand.Build(), testGuildId);
             }
             else
             {
@@ -62,6 +64,20 @@ namespace VRisingBot.Services
                         return true;
             #endif
         }
+
+        private async Task CommandHandler(SocketSlashCommand command)
+        {
+            switch (command.Data.Name)
+            {
+                case VRISING_OPTION:
+                    await HandleServerCommand(command);
+                    break;         
+            }
+        }
+
+        private async Task HandleServerCommand(SocketSlashCommand command) =>
+            await command.RespondAsync(await aciService.ExecuteCommand(Enum.Parse<ContainerCommand>(command.Data.Options.First().Value.ToString())));
+       
 
         private async Task HandleInteraction(SocketInteraction arg)
         {
@@ -79,91 +95,21 @@ namespace VRisingBot.Services
                 }
             }
         }
-        
-        private Task SlashCommandExecuted(SlashCommandInfo arg1, Discord.IInteractionContext arg2, IResult arg3)
-        {
-            if (!arg3.IsSuccess)
-            {
-                switch (arg3.Error)
-                {
-                    case InteractionCommandError.UnmetPrecondition:
-                        // implement
-                        break;
-                    case InteractionCommandError.UnknownCommand:
-                        // implement
-                        break;
-                    case InteractionCommandError.BadArgs:
-                        // implement
-                        break;
-                    case InteractionCommandError.Exception:
-                        // implement
-                        break;
-                    case InteractionCommandError.Unsuccessful:
-                        // implement
-                        break;
-                    default:
-                        break;
-                }
-            }
+    }
 
-            return Task.CompletedTask;
-        }
-
-        private Task ContextCommandExecuted(ContextCommandInfo arg1, Discord.IInteractionContext arg2, IResult arg3)
-        {
-            if (!arg3.IsSuccess)
-            {
-                switch (arg3.Error)
-                {
-                    case InteractionCommandError.UnmetPrecondition:
-                        // implement
-                        break;
-                    case InteractionCommandError.UnknownCommand:
-                        // implement
-                        break;
-                    case InteractionCommandError.BadArgs:
-                        // implement
-                        break;
-                    case InteractionCommandError.Exception:
-                        // implement
-                        break;
-                    case InteractionCommandError.Unsuccessful:
-                        // implement
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return Task.CompletedTask;
-        }
-        private Task ComponentCommandExecuted(ComponentCommandInfo arg1, Discord.IInteractionContext arg2, IResult arg3)
-        {
-            if (!arg3.IsSuccess)
-            {
-                switch (arg3.Error)
-                {
-                    case InteractionCommandError.UnmetPrecondition:
-                        // implement
-                        break;
-                    case InteractionCommandError.UnknownCommand:
-                        // implement
-                        break;
-                    case InteractionCommandError.BadArgs:
-                        // implement
-                        break;
-                    case InteractionCommandError.Exception:
-                        // implement
-                        break;
-                    case InteractionCommandError.Unsuccessful:
-                        // implement
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return Task.CompletedTask;
-        }
+    public static class SlashCommandBuilderExtensions
+    {
+        public static SlashCommandBuilder WithGameServerOptions(this SlashCommandBuilder builder, string serverName) =>
+            builder.WithName(serverName)
+             .WithDescription("A command to interact with the game server..")
+             .AddOption(new SlashCommandOptionBuilder()
+                 .WithName("command")
+                 .WithDescription("Choose what you want to happen.")
+                 .WithRequired(true)
+                 .AddChoice(Enum.GetName(ContainerCommand.Start), ContainerCommand.Start.ToString())
+                 .AddChoice(Enum.GetName(ContainerCommand.Stop), ContainerCommand.Stop.ToString())
+                 .AddChoice(Enum.GetName(ContainerCommand.Restart), ContainerCommand.Restart.ToString())
+                 .AddChoice(Enum.GetName(ContainerCommand.GetCurrentState), ContainerCommand.GetCurrentState.ToString())
+                 .WithType(ApplicationCommandOptionType.String));
     }
 }

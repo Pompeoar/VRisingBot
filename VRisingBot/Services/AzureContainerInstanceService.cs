@@ -92,7 +92,7 @@ public enum ContainerCommand
     Start,
     Stop,
     Restart,
-    State
+    GetCurrentState
 }
 
 
