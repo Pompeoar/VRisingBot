@@ -53,7 +53,7 @@ namespace VRisingBot.Services
             else
             {
                 // Reminder: This can take an hour
-                await interactionCommands.RegisterCommandsGloballyAsync(true);
+                await client.CreateGlobalApplicationCommandAsync(guildCommand.Build());
             }
             Console.WriteLine($"Connected as -> [{client.CurrentUser}] :)");
         }
