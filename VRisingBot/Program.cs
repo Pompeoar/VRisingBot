@@ -26,6 +26,7 @@ static IServiceProvider CreateServiceProvider(IConfiguration config) =>
         .AddSingleton<DiscordSocketClient>()
         .AddSingleton<CommandService>()
         .AddSingleton<CommandHandler>()
+        .AddSingleton<SlashCommandHandler>()
         .AddSingleton<InteractionService>()
         .AddSingleton<LoggingService>()
         .AddSingleton<AzureContainerInstanceService>()
@@ -38,6 +39,9 @@ static async Task InitializeServices(IServiceProvider serviceProvider)
     serviceProvider.GetRequiredService<LoggingService>();
     await serviceProvider
         .GetRequiredService<CommandHandler>()
+        .InstallCommandsAsync();
+    await serviceProvider
+        .GetRequiredService<SlashCommandHandler>()
         .InstallCommandsAsync();
 }
 
@@ -53,6 +57,6 @@ static async Task WaitForever() => await Task.Delay(Timeout.Infinite);
 static IConfiguration CreateConfig() =>
     new ConfigurationBuilder()
         .SetBasePath(Directory.GetCurrentDirectory())
-        .AddJsonFile($"appsettings.json", optional: true)
+        .AddJsonFile($"appsettings.local.json", optional: true)
         .AddEnvironmentVariables()
         .Build();
