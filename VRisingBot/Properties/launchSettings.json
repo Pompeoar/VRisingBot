@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "VRisingBot": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}
